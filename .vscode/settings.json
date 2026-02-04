@@ -1,0 +1,21 @@
+{
+  "editor.defaultFormatter": "ms-python.black-formatter",
+  "python.analysis.typeCheckingMode": "standard",
+  "autoDocstring.docstringFormat": "sphinx",
+  "editor.formatOnSave": true,
+  "[markdown]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "python-envs.pythonProjects": [
+    {
+      "path": "src/ui.py",
+      "envManager": "ms-python.python:venv",
+      "packageManager": "ms-python.python:pip"
+    },
+    {
+      "path": "src/infrastructure.py",
+      "envManager": "ms-python.python:venv",
+      "packageManager": "ms-python.python:pip"
+    }
+  ]
+}
