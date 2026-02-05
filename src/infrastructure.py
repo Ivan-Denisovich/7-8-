@@ -61,6 +61,13 @@ def refresh_user_balance(user_id, new_balance):
                 updated = True
             rows.append(row)
 
+    if updated:
+        with open(USERS_CSV, 'w', newline='', encoding='utf-8') as file:
+            writer = csv.writer(file)
+            writer.writerows(rows)
+    else:
+        print(f"Пользователь с ID {user_id} не найден")
+
 def get_all_products():
     products = []
     with open(PRODUCTS_CSV, 'r', encoding='utf-8') as file:

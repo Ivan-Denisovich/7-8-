@@ -140,11 +140,11 @@ def render_shop_page(app_state):
         
         if ok:
             print(f"Куплено: {prod}")
-            app_state["user"]["balance"] = user.balance
+            
         else:
             print(f"Не куплено: {prod}")
             
-    except:
+    except ValueError:
         print("Ошибка ввода")
 
 
