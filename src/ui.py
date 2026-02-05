@@ -12,7 +12,6 @@
 #
 # ===---------------------------------------------------------------------=== #
 from typing import Never
-import streamlit as st
 from application import app
 from domain import User
 from infrastructure import get_products_with_return_option
@@ -22,172 +21,141 @@ def logout() -> Never:
     exit()
 
 
+
 def render_main_page(app_state):
-    st.title("Главное меню")
-    st.write("Выберите действие:")
-    
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        if st.button("Войти в систему"):
+    print("ГЛАВНОЕ МЕНЮ")
+    print("="*40)
+    print("1. Войти в систему")
+    print("2. Информация о приложении")
+    print("3. Выйти")
+    choose = input("Выберите пункт (1-3): ").strip()
+
+    match choose:
+        case "1":
             app_state["page"] = "auth"
-            st.rerun()
-    
-    with col2:
-        if st.button("Посмотреть информацию о приложении"):
+        case "2":
             app_state["page"] = "info"
-            st.rerun()
-    
-    with col3:
-        if st.button("Выйти и завершить программу"):
+        case "3":
             exit()
 
 def render_auth_page(app_state):
-    st.title("Авторизация")
+    print("\n" + "="*40)
+    print(" АВТОРИЗАЦИЯ")
+    print("="*40)
     
-    if st.button("Назад"):
-        app_state["page"] = "main"
-        st.rerun()
-
-    with st.form("auth_form"):
-        username = st.text_input("Логин")
-        password = st.text_input("Пароль", type="password")
+    while True:
+        print("\n1. Ввести логин/пароль")
+        print("2. Назад в главное меню")
+        print("3. Выйти из системы")
         
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            submit = st.form_submit_button("Войти в систему")
-        with col2:
-            exit_btn = st.form_submit_button("Выйти из системы")
-        if submit:
-   
-            match (username, password):
-                case login, password  if not all([login, password]):
-                    st.error("Заполните все поля")
-        
-                case _:          
-                    result = app.auth.authenticate(username, password)
+        choose = input("Выберите действие (1-3): ").strip()
+        match choose:
+            case "1":
+                username = input("Логин: ").strip()
+                password = input("Пароль: ").strip()
             
-                    result = app.auth.authenticate(username, password)
-
-                    if result[0]:  
-                        user = result[1]
-                        app_state["user"] = user  
-                        app_state["page"] = "personal"
-                        st.success(result[2])
-                        st.rerun()
-                    else:
-                            st.error(result[2])  
-        elif exit_btn:
-            app_state["page"] = "main"
-            st.rerun()
+            
+                result = app.auth.authenticate(username, password)
+            
+                if result[0]: 
+                    user = result[1]
+                    app_state["user"] = user
+                    app_state["page"] = "personal"
+                    print(f"{result[2]}")
+                    break
+                else:
+                    print(f"{result[2]}")
+                
+            case "2":
+                app_state["page"] = "main"
+                break
+            
+            case "3":
+                print(" До свидания!")
+                exit()
+            case _:
+                print("ERROR!")
 
 def render_personal_page(app_state):
-    st.title("Личный кабинет")
-    
     user = app_state.get("user")
     
     if not user:
-        st.error("Пользователь не авторизован")
+        print(" Пользователь не авторизован")
         app_state["page"] = "auth"
-        st.rerun()
         return
 
-    st.subheader("Информация о пользователе")
-    st.write(f"**Логин:** {user.username}")  
-    st.write(f"**Email:** {user.email}")
-    st.write(f"**Баланс:** {user.balance}")
+    print(" ЛИЧНЫЙ КАБИНЕТ")
+    print("="*40)
+    print(f"Логин: {user.username}")
+    print(f"Email: {user.email}")
+    print(f"Баланс: {user.balance} руб.")
     
-    col1, col2 = st.columns(2)
+    print("\n1.  Перейти в магазин")
+    print("2.  Выйти из учетной записи")
     
-    with col1:
-        if st.button("🛒 Перейти в магазин"):
+    choose = input("Выберите действие (1-2): ").strip()
+    match choose:
+        case "1":
             app_state["page"] = "shop"
-            st.rerun()
-    
-    with col2:
-        if st.button(" Выйти из учетной записи"):
+        case "2":
             app_state["user"] = None
             app_state["page"] = "auth"
-            st.success("Вы вышли из учетной записи")
-            st.rerun()
-    
+            print("Вы вышли из учётной записи")
+        case _:
+            print("ERROR!!")
+
+
     
    
 def render_shop_page(app_state):
-    st.title("Магазин")
-    
     user = app_state.get("user")
     
     if not user:
-        st.error("Необходимо авторизоваться")
+        print("Войдите сначала")
         app_state["page"] = "auth"
-        st.rerun()
         return
     
-    
-    st.info(f"Ваш баланс: **{user.balance} руб.**")
-    
+    print(f"Баланс: {user.balance} руб.")
+    print("\nТовары:")
     
     products = get_products_with_return_option()
     
+    for i, p in enumerate(products):
+        print(f"{i+1}. {p.name} - {p.price} руб.")
     
-    st.subheader("Выберите товар:")
+    try:
+        n = int(input("Номер товара: "))
+        if n < 1 or n > len(products):
+            return
+            
+        product = products[n-1]
+        
+        if product.name == "Вернуться в личный кабинет":
+            app_state["page"] = "personal"
+            return
+        
     
-    for i, product in enumerate(products):
-        col1, col2, col3 = st.columns([3, 2, 1])
         
-        with col1:
-            st.write(f"**{i+1}) {product.name}**")
+        ok, prod = app.shop.make_purchase(user, product)
         
-        with col2:
-            if product.price > 0:
-                st.write(f"**{product.price} руб.**")
-        
-        with col3:
-            if st.button("Купить", key=f"buy_{i}"):
-                if product.name == "Вернуться в личный кабинет":
-                    app_state["page"] = "personal"
-                    st.rerun()
-                    return
-                
-               
-                user_obj = User(
-                    user_id=user["id"],
-                    username=user["username"],
-                    password="",
-                    email=user["email"],
-                    balance=user["balance"]
-                )
-                
-              
-                success, message = app.shop.make_purchase(user_obj, product)
-                
-                if success:
-                    st.success(message)
-                    
-                    app_state["user"]["balance"] = user_obj.balance
-                    st.rerun()
-                else:
-                    st.error(message)
-
-
+        if ok:
+            print(f"Куплено: {prod}")
+            app_state["user"]["balance"] = user.balance
+        else:
+            print(f"Не куплено: {prod}")
+            
+    except:
+        print("Ошибка ввода")
 
 
 def render_info_page(app_state):
-    st.title("Информация о приложении")
+    print("\nИнформация о приложении:")
+    print("Интернет-магазин 'Чижик'!")
+    print("- Супермодное приложение для пяти пользователей")
+    print("- DDD архитектура")
+    print("- Оригинальный дизайн")
+    print("- Удобный интерфейс")
+    print("- Уникальный фирменный стиль")
     
-    st.write("""
-    ## Интернет-магазин "Чижик"!\n
-    **Супермодное приложение для пяти пользователей**\n
-    **DDD архитектура**\n
-    **Оригинальный дизайн**\n
-    **Удобный интерфейс** \n
-    **Уникальный фирменный стиль**\n
-       
-    """)
-    
-    
-    if st.button("Назад"):
-        app_state["page"] = "main"
-        st.rerun()
+    input("\nНажмите Enter для возврата...")
+    app_state["page"] = "main"
